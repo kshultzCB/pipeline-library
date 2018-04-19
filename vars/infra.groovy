@@ -38,22 +38,18 @@ Object checkout(String repo = null) {
  * @param jdk Version of JDK to be used
  * @return {@code true} if the file has been defined
  */
+
+// KS: This is a temporary solution to getting the single-plugin PCT 
+// runner working.
 boolean retrieveMavenSettingsFile(String settingsXml, String jdk = 8) {
-    if (env.MAVEN_SETTINGS_FILE_ID != null) {
-        configFileProvider([configFile(fileId: env.MAVEN_SETTINGS_FILE_ID, variable: 'mvnSettingsFile')]) {
-            if (isUnix()) {
-                sh "cp ${mvnSettingsFile} ${settingsXml}"
-            } else {
-                bat "copy ${mvnSettingsFile} ${settingsXml}"
-            }
-            return true
+    configFileProvider([configFile(fileId: "MavenReadOnly", variable: 'mvnSettingsFile')]) {
+        if (isUnix()) {
+            sh "cp ${mvnSettingsFile} ${settingsXml}"
+        } else {
+            bat "copy ${mvnSettingsFile} ${settingsXml}"
         }
-    } else if (jdk.toInteger() > 7 && isRunningOnJenkinsInfra()) {
-        /* Azure mirror only works for sufficiently new versions of the JDK due to Letsencrypt cert */
-        writeFile file: settingsXml, text: libraryResource('settings-azure.xml')
         return true
     }
-    return false
 }
 
 /**
